@@ -8,7 +8,7 @@ NONE=0
 WIN=1
 
 class Field:
-    def __init__(self,size,mines,maxmines,radius,shape):
+    def __init__(self,size,mines,maxmines,radius,safemode,shape):
         self.status=NONE
         self.safemode = False
         self.cell=zeros(size,dtype=int)
@@ -19,6 +19,7 @@ class Field:
         self.radius=radius
         self.size=size
         self.shape=shape
+        self.safemode=safemode
         m,n=size
         while mines>0:
             i=int(m*rnd())
@@ -101,8 +102,8 @@ if True: # field init
     mines=int(raw_input("How many bombs are there? (up to n*m) : "))
     radius=int(raw_input(" How far does a tile see? (in the classical case it's 1) : "))
     maxmines=int(raw_input(" What is the maximum number of mines within one square? : "))
-    field=Field((m,n),mines,maxmines,radius,0)
-    field.safemode={'y':1,'n':0}[raw_input("Safe mode? (y/n) : ")[0]]
+    safemode={'y':1,'n':0}[raw_input("Safe mode? (y/n) : ")[0]]
+    field=Field((m,n),mines,maxmines,radius,safemode,0)
     
 
 if True: # pygame init
@@ -157,6 +158,7 @@ def drawfield():
         
 
 while 1: # Game loop
+    field.update()
     drawfield()
     for event in pygame.event.get():
         if event.type == QUIT :
@@ -173,10 +175,18 @@ while 1: # Game loop
                 else: field.putflag(i,j)
             field.update()
         if event.type == KEYDOWN:
+            i,j=coords(pygame.mouse.get_pos())
+            if  event.key==K_w :
+                if  field.flag[i][j]: field.flag[i][j]-=1
+                else: field.change(i,j)
+            if  event.key==K_q :
+                if  field.mask[i][j]==0: field.flag[i][j]+=1
+                else: field.putflag(i,j)
             if event.key==K_r : 
-                field=Field((m,n),mines,maxmines,radius,0)
+                field=Field((m,n),mines,maxmines,radius,safemode,0)
             if event.key == K_ESCAPE : 
                 pygame.quit()
-                quit()  
+                quit() 
+
     pygame.display.update()
 
