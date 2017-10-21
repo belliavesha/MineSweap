@@ -111,7 +111,7 @@ if True: # pygame init
     cell_width=int(cell_height*1.182)
     display_width = m*cell_width
     display_height = n*cell_height
-    screen = pygame.display.set_mode((display_width, display_height))
+    screen = pygame.display.set_mode((display_width+cell_width*2, display_height))
     pygame.display.set_caption('MineSweaper')
 
 if True: # text init
@@ -125,10 +125,10 @@ if True: # text init
     colorTile=(250,250,170)
     colorFill=(0,0,90)
     fontNumber = pygame.font.SysFont(font, cell_height-1)
-    fontText = pygame.font.SysFont(font, display_width/8)
-    numCell = [ fontNumber.render(str(i), 1, colorCell) for i in range(100) ]
-    numMine = [ fontNumber.render(str(i), 1, colorMine) for i in range(100) ]
-    numFlag = [ fontNumber.render(str(i), 1, colorFlag) for i in range(100) ]
+    fontText = pygame.font.SysFont(font, min(display_width/8,display_height/2))
+    numCell = lambda i : fontNumber.render(str(i), 1, colorCell) 
+    numMine = lambda i : fontNumber.render(str(i), 1, colorMine) 
+    numFlag = lambda i : fontNumber.render(str(i), 1, colorFlag) 
     textRE = fontText.render(" R - REPLAY ", 1, colorText)
     textGO = fontText.render(" Game OVER! ", 1, colorText)
     textYW = fontText.render("  You WIN!  ", 1, colorText)
@@ -142,14 +142,20 @@ def coords(pos):
     
 def drawfield():
     screen.fill(colorFill)
+    f=mines
     for i,j in field.all:
         p=pos(i,j)
         if field.mask[i][j]:
-            if field.mine[i][j]: screen.blit(numMine[field.mine[i][j]], p)
-            else: screen.blit(numCell[field.cell[i][j]], p)  
+            if field.mine[i][j]: screen.blit(numMine(field.mine[i][j]), p)
+            else: screen.blit(numCell(field.cell[i][j]), p)  
         else:
             pygame.draw.rect(screen,colorTile,p+(cell_width-2,cell_height-2),0)
-            if field.flag[i][j]: screen.blit(numFlag[field.flag[i][j]], p) 
+            if field.flag[i][j]: screen.blit(numFlag(field.flag[i][j]), p) 
+        f-=field.flag[i][j]
+    else:
+        p=pos(m,0)
+        pygame.draw.rect(screen,colorText,p+(cell_width*2,display_height),0)
+        screen.blit(numMine(f), p)
     screen.blit({WIN:textYW, FAIL:textGO, NONE:textNN}[field.status], (0,0))   
     if field.status!=NONE : screen.blit(textRE, (0,display_height/2))   
         
@@ -164,21 +170,23 @@ while 1: # Game loop
             quit()
         if event.type == MOUSEBUTTONDOWN:
             i,j=coords(event.pos)
-            if event.button == 1:
-                if  field.flag[i][j]: field.flag[i][j]-=1
-                else: field.change(i,j)
-            if event.button == 3:
-                if  field.mask[i][j]==0: field.flag[i][j]+=1
-                else: field.putflag(i,j)
+            if not field.out(i,j):
+                if event.button == 1:
+                    if  field.flag[i][j]: field.flag[i][j]-=1
+                    else: field.change(i,j)
+                if event.button == 3:
+                    if  field.mask[i][j]==0: field.flag[i][j]+=1
+                    else: field.putflag(i,j)
             field.update()
         if event.type == KEYDOWN:
             i,j=coords(pygame.mouse.get_pos())
-            if  event.key==K_w :
-                if  field.flag[i][j]: field.flag[i][j]-=1
-                else: field.change(i,j)
-            if  event.key==K_q :
-                if  field.mask[i][j]==0: field.flag[i][j]+=1
-                else: field.putflag(i,j)
+            if not field.out(i,j):
+                if  event.key==K_w :
+                    if  field.flag[i][j]: field.flag[i][j]-=1
+                    else: field.change(i,j)
+                if  event.key==K_q :
+                    if  field.mask[i][j]==0: field.flag[i][j]+=1
+                    else: field.putflag(i,j)
             if event.key==K_r : 
                 field=Field((m,n),mines,maxmines,radius,safemode,0)
             if event.key == K_ESCAPE : 
