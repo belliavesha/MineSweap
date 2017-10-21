@@ -21,10 +21,9 @@ class Field:
         self.shape=shape
         self.safemode=safemode
         m,n=size
+        self.all=self.rad(m/2,m/2,m/2)
         while mines>0:
-            i=int(m*rnd())
-            j=int(n*rnd())
-            # print i,j,m,n 
+            i,j=self.all[int(rnd()*m*n)]
             if self.mine[i][j]<self.maxmines: 
                 mines-=self.putmine(i,j,1)
 
@@ -41,7 +40,7 @@ class Field:
                 if not self.out(ii,jj):
                     l.append((ii,jj))
         return l
-    
+
     def putmine(self,i,j,b):
         self.mine[i][j]+=b
         for ii,jj in self.rad(i,j,self.radius):
@@ -82,20 +81,18 @@ class Field:
                 for ii,jj in self.rad(i,j,2*self.radius):
                     self.mask[ii][jj]=0
             else : 
-                self.mask[:][:]=1
+                for ii,jj in self.all:
+                    self.mask[ii][jj]+=self.mine[ii][jj]
 
     def update(self):
-        p=self.size[0]/2
-        for i,j in self.rad(p,p,p):
+        self.status=WIN
+        for i,j in self.all:
             if self.mine[i][j]!=self.flag[i][j] or (self.mine[i][j]==0 and self.mask[i][j]==0):
                 self.status=NONE
-                return
             if self.mine[i][j]>0 and self.mask[i][j]>0:
                 self.status=FAIL
                 return
-        else:
-            self.status=WIN
-            return
+        return
             
 if True: # field init
     m,n=raw_input(" What are field dimensions? (two integers n and m) : ").split()
@@ -124,7 +121,7 @@ if True: # text init
     colorCell=(0,250,0)
     colorFlag=(0,0,250)
     colorMine=(250,0,0)
-    colorText=(250,250,0)
+    colorText=(170,0,250)
     colorTile=(250,250,170)
     colorFill=(0,0,90)
     fontNumber = pygame.font.SysFont(font, cell_height-1)
@@ -136,8 +133,6 @@ if True: # text init
     textGO = fontText.render(" Game OVER! ", 1, colorText)
     textYW = fontText.render("  You WIN!  ", 1, colorText)
     textNN = fontText.render(" ", 1, colorText)
-    
-
 
 def pos(i,j):
     return (cell_width*i,cell_height*j)
@@ -147,7 +142,7 @@ def coords(pos):
     
 def drawfield():
     screen.fill(colorFill)
-    for i,j in field.rad(m/2,m/2,m/2):
+    for i,j in field.all:
         p=pos(i,j)
         if field.mask[i][j]:
             if field.mine[i][j]: screen.blit(numMine[field.mine[i][j]], p)
