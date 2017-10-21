@@ -97,7 +97,7 @@ class Field:
             return
             
 if True: # field init
-    m,n=raw_input("What are field dimensions? (two whole numbers n and m) : ").split()
+    m,n=raw_input("What are field dimensions? (two integers n and m) : ").split()
     m,n=max(int(n),int(m)),min(int(m),int(n))
     mines=int(raw_input("How many bombs are there? (up to n*m) : "))
     radius=int(raw_input(" How far does a tile see? (in the classical case it's 1) : "))
