@@ -85,7 +85,8 @@ class Field:
                 self.mask[:][:]=1
 
     def update(self):
-        for i,j in self.rad(0,0,self.size[0]):
+        p=self.size[0]/2
+        for i,j in self.rad(p,p,p):
             if self.mine[i][j]!=self.flag[i][j] or (self.mine[i][j]==0 and self.mask[i][j]==0):
                 self.status=NONE
                 return
@@ -97,12 +98,13 @@ class Field:
             return
             
 if True: # field init
-    m,n=raw_input("What are field dimensions? (two integers n and m) : ").split()
+    m,n=raw_input(" What are field dimensions? (two integers n and m) : ").split()
     m,n=max(int(n),int(m)),min(int(m),int(n))
-    mines=int(raw_input("How many bombs are there? (up to n*m) : "))
+    mines=int(raw_input(" How many bombs are there? (up to n*m) : "))
     radius=int(raw_input(" How far does a tile see? (in the classical case it's 1) : "))
-    maxmines=int(raw_input(" What is the maximum number of mines within one square? : "))
-    safemode={'y':1,'n':0}[raw_input("Safe mode? (y/n) : ")[0]]
+    maxmines=int(raw_input(" What is the maximum number of mines within one square? (if 0 - no limit ) : "))
+    if maxmines<1: maxmines=mines
+    safemode={'y':1,'n':0}[raw_input(" Safe mode? (y/n) : ")[0]]
     field=Field((m,n),mines,maxmines,radius,safemode,0)
     
 
@@ -145,7 +147,7 @@ def coords(pos):
     
 def drawfield():
     screen.fill(colorFill)
-    for i,j in field.rad(0,0,m):
+    for i,j in field.rad(m/2,m/2,m/2):
         p=pos(i,j)
         if field.mask[i][j]:
             if field.mine[i][j]: screen.blit(numMine[field.mine[i][j]], p)
